@@ -164,6 +164,31 @@ ls common/standards/go/
 # Should list: constructors.md, error-wrapping.md, jp-go-errors.md, etc.
 ```
 
+**Step 3a: Link Claude Commands to Common Prompts (Optional)**
+
+If using Claude Code with slash commands:
+
+```bash
+# From project root
+mkdir -p .claude
+cd .claude
+ln -s ../.ai/common/prompts commands
+```
+
+This gives you access to shared prompts like:
+
+- `/convert-to-common-standard` - Analyze if a standard should be common
+- `/document-new-standard` - Document a new pattern
+- `/extract-patterns` - Extract patterns from code
+- `/generate-docs` - Generate documentation
+
+Verify:
+
+```bash
+ls -la .claude/commands
+# Should show: commands -> ../.ai/common/prompts
+```
+
 **Step 4: Create Project Loading Map (.ai/llms.md)**
 
 Create `.ai/llms.md`:
@@ -345,6 +370,8 @@ Only create standards that are truly project-specific:
 your-project/
 ├── CLAUDE.md                   # Entry point for AI assistants
 ├── .gitignore                  # Ignores context.md, memory.md, tasks/
+├── .claude/                    # Claude Code configuration (optional)
+│   └── commands -> ../.ai/common/prompts  # Symlink to shared prompts
 └── .ai/
     ├── llms.md                 # Project loading map
     ├── README.md               # Documentation about .ai folder
