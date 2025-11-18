@@ -1,12 +1,20 @@
 # Test Suite Logging Configuration
 
+*Category: testing*
+
 Configure test logging to suppress noise while preserving error visibility.
+
+## Import Convention
+
+```go
+import testlogger "github.com/JohnPlummer/go-test-logger"
+```
 
 ## Pattern
 
 ```go
 var _ = BeforeSuite(func() {
-    testutil.ConfigureTestLogging()
+    testlogger.ConfigureTestLogging()
 
     // Suite setup continues...
 })
@@ -19,17 +27,16 @@ var _ = BeforeSuite(func() {
 - **Environment control**: Respects LOG_LEVEL env var for debugging specific suites
 - **Consistent behavior**: Same logging config across all test suites
 
-## Examples from Codebase
+## Usage Examples
 
 ### Integration test suite setup
 
 ```go
-// pipeline/tests/integration/repository/repository_suite_test.go:35
 var _ = BeforeSuite(func() {
-    testutil.ConfigureTestLogging()
+    testlogger.ConfigureTestLogging()
 
     ctx = context.Background()
-    pgTestContainer, err = containers.StartSimplePostgreSQLContainer(ctx)
+    pgTestContainer, err = testpg.StartSimplePostgreSQLContainer(ctx)
     Expect(err).NotTo(HaveOccurred())
 })
 ```
@@ -37,20 +44,18 @@ var _ = BeforeSuite(func() {
 ### Unit test suite setup
 
 ```go
-// pipeline/pkg/llm/llm_suite_test.go:19
 var _ = BeforeSuite(func() {
-    testutil.ConfigureTestLogging()
+    testlogger.ConfigureTestLogging()
 })
 ```
 
-### Backend integration test
+### Integration test with Docker check
 
 ```go
-// backend/pkg/api/repositories/repository_integration_test.go:29
 var _ = BeforeSuite(func() {
-    testutil.ConfigureTestLogging()
+    testlogger.ConfigureTestLogging()
 
-    if shouldSkip, skipMessage := containers.SkipIfDockerUnavailable(); shouldSkip {
+    if shouldSkip, skipMessage := testpg.SkipIfDockerUnavailable(); shouldSkip {
         Skip(skipMessage)
     }
 })
@@ -79,14 +84,18 @@ LOG_LEVEL=WARN ginkgo run ./...
 ginkgo run ./...
 ```
 
-## Implementation
+## How It Works
 
-From `shared/testutil/logging.go:16`:
+The go-test-logger package provides:
 
-- Default: `slog.Level(7)` (just below ERROR)
-- Outputs to stderr for visibility
-- Sets as default logger for entire suite
+- Default: ERROR level only (suppresses INFO and WARN)
+- Outputs to stderr for visibility during test runs
+- Respects LOG_LEVEL environment variable for debugging
+- Sets slog default logger for entire suite
 
-## Related Patterns
+See `testing/go-test-logger.md` for LOG_LEVEL values and advanced usage.
 
-- `.ai/project-standards/expected-error-logs.md` - Validating expected errors
+## Related Standards
+
+- `testing/go-test-logger.md` - Package documentation and all available functions
+- `testing/expected-error-logs.md` - Validating expected error patterns

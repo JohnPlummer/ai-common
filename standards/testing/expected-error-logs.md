@@ -1,12 +1,20 @@
 # Expected Error Log Validation
 
+*Category: testing*
+
 Validate expected error logs appear while suppressing them from test output, catching unexpected errors.
+
+## Import Convention
+
+```go
+import testlogger "github.com/JohnPlummer/go-test-logger"
+```
 
 ## Pattern
 
 ```go
 It("should handle API errors gracefully", func() {
-    testutil.ExpectErrorLog(func(logger *slog.Logger) {
+    testlogger.ExpectErrorLog(func(logger *slog.Logger) {
         client := NewClient(logger)
         err := client.FetchData()
 
@@ -31,16 +39,15 @@ It("should handle API errors gracefully", func() {
 ### Worker error handling
 
 ```go
-// pipeline/pkg/workers/deduplicator/worker_test.go:138
 It("logs error and continues processing after batch errors", func() {
-    testutil.ExpectErrorLog(func(logger *slog.Logger) {
+    testlogger.ExpectErrorLog(func(logger *slog.Logger) {
         mockProc := &mockBatchProcessor{}
-        config := &deduplicator.WorkerConfig{
+        config := &WorkerConfig{
             PollInterval: 50 * time.Millisecond,
         }
-        testWorker, err := deduplicator.NewWorkerWithProcessor(mockProc, config, nil, logger)
+        testWorker, err := NewWorkerWithProcessor(mockProc, config, nil, logger)
 
-        mockProc.processFunc = func(ctx context.Context) (*deduplicator.BatchStatistics, error) {
+        mockProc.processFunc = func(ctx context.Context) (*BatchStatistics, error) {
             return nil, errors.New("batch processing failed")
         }
 
@@ -52,9 +59,8 @@ It("logs error and continues processing after batch errors", func() {
 ### LLM API error logging
 
 ```go
-// pipeline/pkg/llm/openai_api_test.go:40
 It("logs error details for rate limit errors", func() {
-    testutil.ExpectErrorLog(func(logger *slog.Logger) {
+    testlogger.ExpectErrorLog(func(logger *slog.Logger) {
         testExtractor, mockClient := newTestExtractorWithLogger(logger)
 
         rateLimitErr := &openai.APIError{
@@ -72,9 +78,8 @@ It("logs error details for rate limit errors", func() {
 ### Processor failure handling
 
 ```go
-// pipeline/pkg/workers/curator/processor_test.go:186
 It("should mark as failed on generation error", func() {
-    testutil.ExpectErrorLog(func(logger *slog.Logger) {
+    testlogger.ExpectErrorLog(func(logger *slog.Logger) {
         client.err = fmt.Errorf("LLM API error")
 
         processor := NewProcessor(repo, generator, validator, logger)
@@ -98,30 +103,33 @@ It("should mark as failed on generation error", func() {
 
 ```go
 // Single expected error
-testutil.ExpectErrorLog(func(logger *slog.Logger) {
+testlogger.ExpectErrorLog(func(logger *slog.Logger) {
     // test
 }, "error message")
 
 // Multiple validation patterns
-testutil.ExpectErrorLog(func(logger *slog.Logger) {
+testlogger.ExpectErrorLog(func(logger *slog.Logger) {
     // test
 }, "pattern1", "pattern2", "pattern3")
 
-// JSON format (rarely used)
-testutil.ExpectErrorLogJSON(func(logger *slog.Logger) {
+// JSON format (for structured logging)
+testlogger.ExpectErrorLogJSON(func(logger *slog.Logger) {
     // test
 }, `"level":"ERROR"`, `"msg":"failure"`)
 ```
 
 ## How It Works
 
-From `shared/testutil/logger.go:71`:
+The go-test-logger package provides this functionality:
 
-1. Captures all logs to buffer
+1. Captures all logs to in-memory buffer
 2. Validates each expected pattern appears (fails test if missing)
-3. Displays only log lines NOT matching expected patterns
+3. Displays only log lines NOT matching expected patterns to stderr
 4. Result: Expected errors hidden, unexpected errors visible
 
-## Related Patterns
+See `testing/go-test-logger.md` for complete API documentation.
 
-- `.ai/project-standards/test-suite-logging.md` - Suite-level logging config
+## Related Standards
+
+- `testing/go-test-logger.md` - Package documentation and all available functions
+- `testing/test-suite-logging.md` - Suite-level logging configuration

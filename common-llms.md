@@ -31,6 +31,7 @@ Load standards on-demand based on the task at hand. Standards are organized by:
 - `standards/go/jp-go-errors.md` - Standardized error types, sentinels, HTTP status codes
 - `standards/go/jp-go-config.md` - Configuration structs (DatabaseConfig, RedisConfig, HTTPConfig)
 - `standards/go/jp-go-pgx-utils.md` - PostgreSQL connection pooling and utilities
+- `standards/go/jp-go-resilience.md` - Circuit breakers, retry logic, health checking
 
 ## TypeScript/React Standards
 
@@ -59,6 +60,8 @@ Load standards on-demand based on the task at hand. Standards are organized by:
 - `standards/testing/bdd-testing.md` - Ginkgo BDD test structure
 - `standards/testing/testcontainers.md` - PostgreSQL container integration
 - `standards/testing/mocking.md` - Mockery v3 mock generation
+- `standards/testing/go-test-logger.md` - ExpectErrorLog pattern, suite logging, LOG_LEVEL control
+- `standards/testing/jp-go-testcontainers-postgres.md` - PostgreSQL testcontainer helpers and cleanup patterns
 - `standards/testing/test-suite-logging.md` - Suppress INFO/WARN logs in test suites
 - `standards/testing/expected-error-logs.md` - Validate and suppress expected error logs
 
@@ -85,8 +88,9 @@ Load standards on-demand based on the task at hand. Standards are organized by:
 
 **When**: Implementing reliability patterns
 
-- `standards/infrastructure/circuit-breaker.md` - Circuit breaker pattern with sony/gobreaker
-- `standards/infrastructure/retry-logic.md` - Retry pattern with exponential backoff and jitter
+- `standards/infrastructure/circuit-breaker.md` - Circuit breaker pattern concepts and state management
+- `standards/infrastructure/retry-logic.md` - Retry pattern concepts and backoff strategies
+- `standards/go/jp-go-resilience.md` - Implementation with circuit breakers, retry wrappers, health checking
 - `standards/infrastructure/http-middleware.md` - HTTP middleware patterns
 - `standards/infrastructure/performance-monitoring.md` - Prometheus metrics for performance validation
 
@@ -121,14 +125,14 @@ Load standards on-demand based on the task at hand. Standards are organized by:
 | Task Type | Load These Standards |
 |-----------|---------------------|
 | Go API endpoint | clean-architecture, repository-pattern, bdd-testing, jp-go-errors, jp-go-pgx-utils |
-| Database repository | repository-pattern, database-transactions, testcontainers, jp-go-pgx-utils, jp-go-errors |
-| Go worker | constructors, functional-options, type-organization, jp-go-errors, jp-go-config |
+| Database repository | repository-pattern, database-transactions, jp-go-testcontainers-postgres, jp-go-pgx-utils, jp-go-errors |
+| Go worker | constructors, functional-options, type-organization, jp-go-errors, jp-go-config, jp-go-resilience |
 | Error handling | error-wrapping, jp-go-errors, error-classification, error-responses |
 | React component | typescript-components, react-hooks, typescript-interfaces, custom-hooks |
 | React error handling | error-boundaries, custom-hooks |
-| Writing tests (Go) | bdd-testing, testcontainers, mocking, test-categories, test-timing-patterns |
+| Writing tests (Go) | bdd-testing, go-test-logger, jp-go-testcontainers-postgres, mocking, test-categories, test-timing-patterns |
 | Writing tests (React) | testing-patterns |
-| Circuit breaker | circuit-breaker, retry-logic |
+| Resilience patterns | jp-go-resilience, circuit-breaker, retry-logic, jp-go-errors |
 | HTTP middleware | http-middleware, jp-go-errors |
 | Database transactions | database-transactions, jp-go-pgx-utils |
 | Configuration | jp-go-config, functional-options |
@@ -161,7 +165,8 @@ ai-common/
 │   │   ├── type-organization.md
 │   │   ├── jp-go-errors.md
 │   │   ├── jp-go-config.md
-│   │   └── jp-go-pgx-utils.md
+│   │   ├── jp-go-pgx-utils.md
+│   │   └── jp-go-resilience.md
 │   ├── typescript/                     # TypeScript/React patterns
 │   │   ├── typescript-components.md
 │   │   ├── typescript-interfaces.md
@@ -177,6 +182,8 @@ ai-common/
 │   │   ├── test-categories.md
 │   │   ├── test-timing-patterns.md
 │   │   ├── test-timeout-constants.md
+│   │   ├── go-test-logger.md
+│   │   ├── jp-go-testcontainers-postgres.md
 │   │   ├── test-suite-logging.md
 │   │   ├── expected-error-logs.md
 │   │   ├── error-classification.md

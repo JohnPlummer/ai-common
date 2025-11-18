@@ -1,85 +1,62 @@
 # Circuit Breaker Pattern
 
-Circuit breaker pattern using sony/gobreaker for fault tolerance when calling external services.
+*Category: infrastructure*
 
-## Pattern
+Prevents cascading failures by failing fast when external services are degraded.
 
-```go
-import "github.com/sony/gobreaker/v2"
+## Pattern Overview
 
-// Standard circuit breaker configuration
-settings := gobreaker.Settings{
-    Name:        "ServiceName",
-    MaxRequests: 3,                    // Half-open state requests
-    Interval:    10 * time.Second,     // Count window
-    Timeout:     30 * time.Second,     // Open to half-open transition
-    ReadyToTrip: func(counts gobreaker.Counts) bool {
-        failureRatio := float64(counts.TotalFailures) / float64(counts.Requests)
-        return counts.Requests >= 3 && failureRatio >= 0.6
-    },
-    OnStateChange: func(name string, from, to gobreaker.State) {
-        logger.Info("circuit breaker state changed",
-            "name", name,
-            "from", from.String(),
-            "to", to.String())
-    },
-}
+Circuit breakers protect your application from repeatedly calling failing external services. When failure rate exceeds a threshold, the circuit "trips" and fails fast without calling the external service, giving it time to recover.
 
-cb := gobreaker.NewCircuitBreaker[any](settings)
-
-// Execute with circuit breaker
-result, err := cb.Execute(func() (any, error) {
-    return externalService.Call()
-})
-```
+**For implementation**, use jp-go-resilience package (see `go/jp-go-resilience.md`).
 
 ## Why Use This Pattern
 
 - **Fault tolerance**: Prevents cascading failures when external services fail
-- **Fast failure**: Fails fast when service is known to be down
-- **Automatic recovery**: Tests service health and automatically recovers
-- **Observable**: State changes logged for monitoring
-- **Standard library**: Sony gobreaker is industry standard
-
-## Configuration
-
-Standard settings for most use cases:
-
-- **MaxRequests**: 3 (test with 3 requests in half-open state)
-- **Interval**: 10s (sliding window for failure counting)
-- **Timeout**: 30s (how long to stay open before trying half-open)
-- **ReadyToTrip**: 60% failure rate over minimum 3 requests
-
-Adjust based on:
-
-- Service criticality (lower threshold for critical services)
-- Expected latency (longer timeout for slow services)
-- Traffic volume (higher request minimum for high-traffic)
+- **Fast failure**: Rejects requests immediately when service is known to be down
+- **Automatic recovery**: Tests service health and automatically recovers when available
+- **Observable**: State transitions provide monitoring signals
+- **Resource protection**: Prevents wasted resources on failing calls
 
 ## Circuit Breaker States
 
-**Closed**: Normal operation, requests pass through
+Circuit breakers operate in three states:
 
+**Closed** (Normal Operation)
+
+- Requests pass through to external service
 - Tracks failure rate in rolling window
-- Trips to Open when threshold exceeded
+- Trips to Open when threshold exceeded (e.g., 60% failures)
 
-**Open**: Failing fast, requests rejected immediately
+**Open** (Failing Fast)
 
-- No requests reach external service
-- Transitions to Half-Open after Timeout
+- Requests rejected immediately without calling external service
+- Saves resources and prevents cascading failures
+- Transitions to Half-Open after timeout period (e.g., 60 seconds)
 
-**Half-Open**: Testing if service recovered
+**Half-Open** (Testing Recovery)
 
-- Allows MaxRequests through
-- Success → Closed, Failure → Open
+- Allows limited requests through to test service health
+- Success transitions back to Closed
+- Failure returns to Open
 
-## Example from Codebase
+## When to Use
 
-**Location**: `pipeline/pkg/llm/circuit_breaker.go`
+Circuit breakers are essential for:
 
-Circuit breaker wrapping OpenAI API calls with logging and metrics.
+- HTTP/gRPC calls to external APIs
+- Database connections with potential timeouts
+- Third-party service integrations (payment gateways, email services)
+- Microservice communication
 
-## Related Patterns
+Skip circuit breakers for:
 
-- Combine with retry logic: `.ai/project-standards/retry-logic.md`
-- Error classification: `.ai/project-standards/error-classification.md`
+- Internal function calls without I/O
+- Already-reliable services (local file system)
+- Operations where you need every attempt (user authentication)
+
+## Related Standards
+
+- `go/jp-go-resilience.md` - Implementation with circuit breaker wrapper
+- `infrastructure/retry-logic.md` - Combining retry with circuit breakers
+- `go/jp-go-errors.md` - Error classification for failure detection
