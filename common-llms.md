@@ -19,6 +19,7 @@ Load standards on-demand based on the task at hand. Standards are organized by:
 
 **When**: Writing any Go code
 
+- `standards/go/repository-layout.md` - Directory structure (internal/, pkg/, bin/, cmd/)
 - `standards/go/constructors.md` - New* constructor functions
 - `standards/go/type-organization.md` - Interface and type placement
 - `standards/go/error-wrapping.md` - Error wrapping with fmt.Errorf (%w verb)
@@ -124,6 +125,7 @@ Load standards on-demand based on the task at hand. Standards are organized by:
 
 | Task Type | Load These Standards |
 |-----------|---------------------|
+| New Go project | repository-layout, constructors, functional-options, type-organization, jp-go-errors |
 | Go API endpoint | clean-architecture, repository-pattern, bdd-testing, jp-go-errors, jp-go-pgx-utils |
 | Database repository | repository-pattern, database-transactions, jp-go-testcontainers-postgres, jp-go-pgx-utils, jp-go-errors |
 | Go worker | constructors, functional-options, type-organization, jp-go-errors, jp-go-config, jp-go-resilience |
@@ -159,6 +161,7 @@ ai-common/
 ├── common-llms.md                      # This file (loading map)
 ├── standards/
 │   ├── go/                             # Go language patterns
+│   │   ├── repository-layout.md
 │   │   ├── constructors.md
 │   │   ├── error-wrapping.md
 │   │   ├── functional-options.md
